@@ -6,13 +6,24 @@ const Campground = require('./models/campground');
 const Comment = require('./models/comment');
 const passport = require('passport');
 const LocalStrategy = require('passport-local')
-const user = require('./models/user');
+const User = require('./models/user');
 
 mongoose.connect('mongodb://localhost/yelp_camp', { useNewUrlParser: true, useUnifiedTopology: true });
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
+// PASSPORT CONFIGURATION
+app.use(require('express-session')({
+    secret: 'yelpcamp 2020',
+    resave: false,
+    saveUninitialized: false
+}));
 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate())); // "User.authenticate" derived from passport-local-mongoose
+passport.serializeUser(User.serializeUser()); // derived from passport-local-mongoose
+passport.deserializeUser(User.deserializeUser()); // derived from passport-local-mongoose
 
 //add new campground
 // Campground.create(
@@ -117,6 +128,27 @@ app.post('/campgrounds/:id/comments', (req, res) => {
     //create new comment
     //connect new comment to campground
     //redirect to campground show page
+});
+
+//========================================================================
+//AUTH ROUTES
+
+app.get('/register', (req,res) => {
+    res.render('register');
+});
+
+app.post('/register', (req, res) => {
+    let newUser = new User({username: req.body.username});
+    User.register(newUser, req.body.password, (err, user) => {
+        if(err) {
+            console.log(err);
+            return res.render('/register');
+        } else {
+            passport.authenticate('local')(req, res, () => {
+                res.redirect('campgrounds');
+            })
+        }
+    });
 });
 
 app.listen(3000, () => {
