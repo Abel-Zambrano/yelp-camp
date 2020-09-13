@@ -12,6 +12,7 @@ const commentsRoutes = require('./routes/comments');
 const campgroundRoutes = require('./routes/campgrounds');
 const indexRoutes = require('./routes/index');
 
+// Connect to ROUTES
 app.use(indexRoutes);
 app.use(campgroundRoutes);
 app.use(commentsRoutes);
