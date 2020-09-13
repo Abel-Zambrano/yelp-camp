@@ -25,6 +25,13 @@ passport.use(new LocalStrategy(User.authenticate())); // "User.authenticate" der
 passport.serializeUser(User.serializeUser()); // derived from passport-local-mongoose
 passport.deserializeUser(User.deserializeUser()); // derived from passport-local-mongoose
 
+// CURRENTUSER MIDDLEWARE
+// All routes are able to check if there's a user logged in
+app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
+    next();
+})
+
 //add new campground
 // Campground.create(
 //     {
@@ -94,7 +101,7 @@ app.get('/campgrounds/:id', (req, res) => {
 });
 //================================================
 //COMMENTS ROUTE
-app.get('/campgrounds/:id/comments/new', (req, res) =>{
+app.get('/campgrounds/:id/comments/new', isLoggedIn, (req, res) =>{
     Campground.findById(req.params.id, (err, campground) => {
         if(err){
             console.log(err);
@@ -105,7 +112,7 @@ app.get('/campgrounds/:id/comments/new', (req, res) =>{
     });
 });
 
-app.post('/campgrounds/:id/comments', (req, res) => {
+app.post('/campgrounds/:id/comments', isLoggedIn, (req, res) => {
     //looup campground by id
     Campground.findById(req.params.id, (err, campground) => {
         if(err){
@@ -150,6 +157,32 @@ app.post('/register', (req, res) => {
         }
     });
 });
+
+// LOGIN ROUTE
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+app.post('/login', passport.authenticate('local', 
+    {
+        successRedirect: '/campgrounds',
+        failureRedirect: '/login'
+    }), (req, res) => {
+});
+
+// LOGOUT ROUTE
+app.get('/logout', (req, res) => {
+    req.logOut();
+    res.redirect('/campgrounds');
+});
+
+function isLoggedIn(req, res, next) {
+    if(req.isAuthenticated()) {
+        return next();
+    } else {
+        res.redirect('/login');
+    }
+};
 
 app.listen(3000, () => {
     console.log('Server is running');
