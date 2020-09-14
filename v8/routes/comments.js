@@ -1,5 +1,5 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({mergeParams:true});
 const Campground = require('../models/campground');
 const Comment = require('../models/comment');
 
@@ -26,7 +26,6 @@ router.post('/campgrounds/:id/comments', isLoggedIn, (req, res) => {
                 if(err){
                     console.log(err);                   
                 } else {
-                    console.log('Hello');
                     // Add username and id to comment                    
                     comment.author.id = req.user._id;
                     comment.author.username = req.user.username;                    
