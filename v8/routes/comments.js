@@ -16,28 +16,29 @@ router.get('/campgrounds/:id/comments/new', isLoggedIn, (req, res) =>{
 });
 
 router.post('/campgrounds/:id/comments', isLoggedIn, (req, res) => {
-    //looup campground by id
+    // Loop campground by id
     Campground.findById(req.params.id, (err, campground) => {
         if(err){
             console.log(err);
-            res.redirect('/campgrounds');
-            
+            res.redirect('/campgrounds');            
         } else {
             Comment.create(req.body.comment, (err, comment) => {
                 if(err){
-                    console.log(err);
-                    
+                    console.log(err);                   
                 } else {
+                    console.log('Hello');
+                    // Add username and id to comment                    
+                    comment.author.id = req.user._id;
+                    comment.author.username = req.user.username;                    
+                    // Save comment
+                    comment.save();
                     campground.comments.push(comment);
-                    campground.save();
+                    campground.save();                    
                     res.redirect('/campgrounds/' + campground._id);
                 }
             })
         }
     })
-    //create new comment
-    //connect new comment to campground
-    //redirect to campground show page
 });
 
 function isLoggedIn(req, res, next) {
